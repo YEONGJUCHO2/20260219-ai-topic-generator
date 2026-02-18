@@ -1,0 +1,214 @@
+{
+    "titans": [
+        {
+            "id": "elon-musk",
+            "name": "일론 머스크",
+            "nameEn": "Elon Musk",
+            "methodology": "제1원칙 사고",
+            "methodologyEn": "First Principles Thinking",
+            "description": "문제를 근본 요소로 분해하여 처음부터 다시 사고하는 방법. 기존의 관습이나 가정을 배제하고, 가장 기본적인 진실에서부터 논리를 쌓아 올림.",
+            "categories": [
+                "비즈니스/창업"
+            ],
+            "toolLevel": 1,
+            "keywords": [
+                "창업",
+                "혁신",
+                "사고방식",
+                "문제해결",
+                "스타트업",
+                "비즈니스모델"
+            ],
+            "source": "seed_db"
+        },
+        {
+            "id": "richard-feynman",
+            "name": "리처드 파인만",
+            "nameEn": "Richard Feynman",
+            "methodology": "파인만 기법",
+            "methodologyEn": "Feynman Technique",
+            "description": "복잡한 개념을 어린아이에게 설명하듯 단순화하여 진정한 이해를 달성하는 학습법. 설명하지 못하면 이해하지 못한 것.",
+            "categories": [
+                "학습/시험"
+            ],
+            "toolLevel": 1,
+            "keywords": [
+                "학습",
+                "이해",
+                "설명",
+                "단순화",
+                "개념정리",
+                "공부법"
+            ],
+            "source": "seed_db"
+        },
+        {
+            "id": "barbara-oakley",
+            "name": "바바라 오클리",
+            "nameEn": "Barbara Oakley",
+            "methodology": "간격반복 학습법",
+            "methodologyEn": "Spaced Repetition & Active Recall",
+            "description": "뇌 과학에 기반한 학습법. 적절한 간격을 두고 반복 복습하며, 능동적 회상을 통해 장기 기억으로 전환.",
+            "categories": [
+                "학습/시험"
+            ],
+            "toolLevel": 2,
+            "keywords": [
+                "시험",
+                "암기",
+                "복습",
+                "간격반복",
+                "수험생",
+                "공부습관"
+            ],
+            "source": "seed_db"
+        },
+        {
+            "id": "warren-buffett",
+            "name": "워렌 버핏",
+            "nameEn": "Warren Buffett",
+            "methodology": "25-5 규칙",
+            "methodologyEn": "25-5 Rule",
+            "description": "인생에서 달성하고 싶은 25개 목표를 적은 후, 상위 5개만 집중하고 나머지 20개는 '절대 하지 않을 리스트'로 분류. 집중의 힘.",
+            "categories": [
+                "커리어/의사결정"
+            ],
+            "toolLevel": 1,
+            "keywords": [
+                "목표설정",
+                "집중",
+                "우선순위",
+                "커리어",
+                "의사결정",
+                "전략"
+            ],
+            "source": "seed_db"
+        },
+        {
+            "id": "tim-ferriss",
+            "name": "팀 페리스",
+            "nameEn": "Tim Ferriss",
+            "methodology": "두려움 설정 (Fear Setting)",
+            "methodologyEn": "Fear Setting",
+            "description": "실행을 주저하게 만드는 두려움을 구체적으로 정의하고, 최악의 상황과 예방책, 그리고 시도하지 않았을 때의 비용을 시각화하여 행동을 유도.",
+            "categories": [
+                "멘탈/자기관리"
+            ],
+            "toolLevel": 2,
+            "keywords": [
+                "두려움",
+                "실행력",
+                "멘탈",
+                "리스크관리",
+                "자기관리",
+                "도전"
+            ],
+            "source": "seed_db"
+        },
+        {
+            "id": "brian-tracy",
+            "name": "브라이언 트레이시",
+            "nameEn": "Brian Tracy",
+            "methodology": "개구리를 먹어라",
+            "methodologyEn": "Eat That Frog",
+            "description": "가장 어렵고 중요한 일(개구리)을 하루 중 가장 먼저 처리하는 생산성 원칙. 미루는 습관을 극복하고 성과를 내는 핵심.",
+            "categories": [
+                "생산성/효율"
+            ],
+            "toolLevel": 1,
+            "keywords": [
+                "몰입",
+                "집중",
+                "생산성",
+                "우선순위",
+                "업무효율",
+                "시간관리"
+            ],
+            "source": "seed_db"
+        },
+        {
+            "id": "james-clear",
+            "name": "제임스 클리어",
+            "nameEn": "James Clear",
+            "methodology": "습관 트래커",
+            "methodologyEn": "Habit Tracker",
+            "description": "작은 습관의 복리 효과. 습관 형성 과정을 시각화하고 추적하여 지속적인 행동 변화를 유도하는 시스템.",
+            "categories": [
+                "습관 형성"
+            ],
+            "toolLevel": 2,
+            "keywords": [
+                "습관",
+                "루틴",
+                "자기계발",
+                "행동변화",
+                "동기부여",
+                "목표달성"
+            ],
+            "source": "seed_db"
+        },
+        {
+            "id": "ray-dalio",
+            "name": "레이 달리오",
+            "nameEn": "Ray Dalio",
+            "methodology": "원칙 기반 의사결정",
+            "methodologyEn": "Principles-Based Decision Making",
+            "description": "모든 의사결정에 명확한 원칙을 세우고, 알고리즘처럼 적용. 자신의 원칙을 입력받아 최적의 결정을 도출하는 시스템.",
+            "categories": [
+                "비즈니스/창업"
+            ],
+            "toolLevel": 2,
+            "keywords": [
+                "원칙",
+                "의사결정",
+                "투자",
+                "리더십",
+                "조직관리",
+                "시스템"
+            ],
+            "source": "seed_db"
+        },
+        {
+            "id": "andrew-huberman",
+            "name": "앤드류 후버만",
+            "nameEn": "Andrew Huberman",
+            "methodology": "90분 울트라디안 사이클",
+            "methodologyEn": "Ultradian Rhythm 90-min Cycle",
+            "description": "신경과학 기반의 집중력 관리법. 90분 집중 후 20분 휴식의 생체 리듬을 활용한 타이머 도구.",
+            "categories": [
+                "생산성/효율"
+            ],
+            "toolLevel": 2,
+            "keywords": [
+                "집중력",
+                "뇌과학",
+                "도파민",
+                "생산성",
+                "수면",
+                "루틴"
+            ],
+            "source": "seed_db"
+        },
+        {
+            "id": "niklas-luhmann",
+            "name": "니클라스 루만",
+            "nameEn": "Niklas Luhmann",
+            "methodology": "제텔카스텐 메모법",
+            "methodologyEn": "Zettelkasten Method",
+            "description": "개별 메모를 고유 ID로 관리하고 메모 간 연결(링크)을 통해 지식 네트워크를 구축하는 방법. 루만은 이 방법으로 70권 이상의 책을 저술.",
+            "categories": [
+                "학습/시험"
+            ],
+            "toolLevel": 2,
+            "keywords": [
+                "메모",
+                "노트",
+                "지식관리",
+                "제텔카스텐",
+                "옵시디안",
+                "세컨드브레인"
+            ],
+            "source": "seed_db"
+        }
+    ]
+}
