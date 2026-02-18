@@ -10,7 +10,7 @@ type MatchWithPrompt = MatchResult & {
 };
 
 export default function Dashboard() {
-  // step: idle -> trends -> matching -> generated(표시용) -> done
+  // step: idle -> trends -> matching -> generating(표시용) -> done
   const [step, setStep] = useState<"idle" | "trends" | "matching" | "done">("idle");
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
@@ -18,9 +18,12 @@ export default function Dashboard() {
   const [trends, setTrends] = useState<TrendItem[]>([]);
   const [matches, setMatches] = useState<MatchWithPrompt[]>([]);
   const [ideas, setIdeas] = useState<VideoIdea[]>([]);
-  const [deletedIdeas, setDeletedIdeas] = useState<VideoIdea[]>([]); // 삭제된 기획안
+  const [deletedIdeas, setDeletedIdeas] = useState<VideoIdea[]>([]);
 
-  // 이메일 발송 중 상태 (개별 아이디어 인덱스 추적은 복잡하니 전체 로딩으로 처리하거나, 간단히 토스트로 처리)
+  // 페이징 상태: 현재까지 매칭한 트렌드 인덱스
+  const [matchIndex, setMatchIndex] = useState(0);
+
+  // 이메일 발송 중 상태
   const [sendingEmailIndex, setSendingEmailIndex] = useState<number | null>(null);
 
   const [toast, setToast] = useState<{
@@ -32,7 +35,7 @@ export default function Dashboard() {
   const [filterKeyword, setFilterKeyword] = useState<string>("all");
   const [filterLevel, setFilterLevel] = useState<"all" | 1 | 2>("all");
   const [filterStatus, setFilterStatus] = useState<"active" | "used">("active");
-  const [ideaTab, setIdeaTab] = useState<"active" | "deleted">("active"); // 기획안 탭
+  const [ideaTab, setIdeaTab] = useState<"active" | "deleted">("active");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   // ===== 사용 완료 도구 관리 (Local Storage) =====
@@ -86,7 +89,7 @@ export default function Dashboard() {
     showToast("기획안이 복구되었습니다!", "success");
   };
 
-  // ===== 이메일 발송 (New) =====
+  // ===== 이메일 발송 =====
   const sendIdeaEmail = async (idea: VideoIdea, index: number) => {
     setSendingEmailIndex(index);
     try {
@@ -118,6 +121,7 @@ export default function Dashboard() {
     setLoading(true);
     setLoadingMsg("네이버(경제/부동산 포함) + Google Trends 데이터 수집 중...");
     setStep("trends");
+    setMatchIndex(0); // 트렌드 새로 수집하면 인덱스도 초기화
     try {
       const res = await fetch("/api/trends");
       const data = await res.json();
@@ -135,23 +139,38 @@ export default function Dashboard() {
     }
   }, []);
 
-  // ===== 2단계: 전문가 매칭 + 근거 확보 =====
+  // ===== 2단계: 전문가 매칭 (페이징: 5개씩) =====
   const matchExperts = useCallback(async () => {
     if (trends.length === 0) return;
+
+    // 다음 5개 트렌드 가져오기
+    const targetTrends = trends.slice(matchIndex, matchIndex + 5);
+    if (targetTrends.length === 0) {
+      showToast("더 이상 매칭할 트렌드가 없습니다.", "error");
+      return;
+    }
+
     setLoading(true);
-    setLoadingMsg("전문가 매칭 및 논문/뉴스 검색 중... (1~2분 소요)");
+    setLoadingMsg(`상위 ${matchIndex + 1}~${matchIndex + targetTrends.length}위 트렌드 매칭 중... (약 15초 소요)`);
     setStep("matching");
+
     try {
       const res = await fetch("/api/match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trends }),
+        // API는 받은 트렌드 개수만큼만 처리하도록 수정됨
+        body: JSON.stringify({ trends: targetTrends }),
       });
+
       const data = await res.json();
       if (data.success) {
         const newMatches = data.matches.map((m: MatchResult) => ({ ...m, customPrompt: "" }));
-        setMatches(newMatches);
-        showToast(`${data.count}개 매칭 완료!`, "success");
+
+        // 기존 매칭 결과에 추가 (append) - 중복은 useMemo에서 제거됨
+        setMatches(prev => [...prev, ...newMatches]);
+        setMatchIndex(prev => prev + 5); // 인덱스 증가
+
+        showToast(`✅ ${newMatches.length}개 추가 매칭 완료!`, "success");
       } else {
         throw new Error(data.error);
       }
@@ -160,9 +179,9 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [trends]);
+  }, [trends, matchIndex]);
 
-  // ===== 개별 기획안 생성 (New) =====
+  // ===== 개별 기획안 생성 =====
   const generateSingleIdea = async (match: MatchWithPrompt) => {
     setMatches(prev => prev.map(m =>
       (m.titan.name === match.titan.name && m.trend.keyword === match.trend.keyword)
@@ -176,19 +195,14 @@ export default function Dashboard() {
         body: JSON.stringify({
           match,
           customPrompt: match.customPrompt
-          // sendEmail 플래그 제거
         }),
       });
       const data = await res.json();
       if (data.success && data.ideas.length > 0) {
         const newIdea = data.ideas[0];
         setIdeas(prev => [newIdea, ...prev]);
-
         markAsUsed(match.titan.name, match.titan.methodology);
-
-        // ★ 스텝 업데이트
         setStep("done");
-
         showToast("기획안이 생성되었습니다! (매칭 카드는 사용 완료됨)", "success");
       } else {
         throw new Error(data.error || "생성 실패");
@@ -212,6 +226,7 @@ export default function Dashboard() {
 
   // ===== 필터링 및 정렬 =====
   const filteredMatches = useMemo(() => {
+    // 1. 중복 제거
     const uniqueMap = new Map<string, MatchWithPrompt>();
     matches.forEach((m) => {
       const key = `${m.titan.name}|${m.titan.methodology}`;
@@ -291,10 +306,26 @@ export default function Dashboard() {
         <button className="btn btn-primary" onClick={collectTrends} disabled={loading}>
           📡 트렌드 수집
         </button>
-        <button className="btn btn-primary" onClick={matchExperts} disabled={loading || trends.length === 0}>
-          🧠 전문가 매칭
+
+        {/* 페이징 버튼 */}
+        <button
+          className="btn btn-primary"
+          onClick={matchExperts}
+          disabled={loading || trends.length === 0 || matchIndex >= trends.length}
+          style={{
+            background: matches.length > 0 ? '#4ecdc4' : '',
+            color: matches.length > 0 ? '#000' : ''
+          }}
+        >
+          {loading
+            ? "매칭 중..."
+            : matches.length === 0
+              ? "🧠 상위 5개 트렌드 매칭"
+              : matchIndex >= trends.length
+                ? "✨ 모든 트렌드 확인 완료"
+                : `🔄 다음 5개 트렌드 매칭 (${matchIndex + 1}~${Math.min(matchIndex + 5, trends.length)}위)`
+          }
         </button>
-        {/* 이메일 체크박스 제거됨 */}
       </div>
 
       {loading && (
