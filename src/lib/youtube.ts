@@ -2,48 +2,66 @@
 // YouTube Data API v3 검색 모듈
 // =============================================
 import { YouTubeVideo } from './types';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 
-// ★ 인물별 키워드 — 매번 다른 인물을 검색해서 다양성 보장
-const PERSON_KEYWORDS: { name: string; queries: string[] }[] = [
-    { name: '일론 머스크', queries: ['일론 머스크 학습법', '일론 머스크 습관', '일론 머스크 제1원칙', '일론 머스크 성공 비결'] },
-    { name: '젠슨 황', queries: ['젠슨 황 습관', '젠슨 황 리더십', '젠슨 황 성공 비결', '엔비디아 젠슨 황'] },
-    { name: '빌 게이츠', queries: ['빌 게이츠 독서', '빌 게이츠 습관', '빌 게이츠 성공', '빌 게이츠 루틴'] },
-    { name: '스티브 잡스', queries: ['스티브 잡스 사고방식', '스티브 잡스 습관', '스티브 잡스 명언', '스티브 잡스 철학'] },
-    { name: '워렌 버핏', queries: ['워렌 버핏 습관', '워렌 버핏 투자 원칙', '워렌 버핏 하루', '워렌 버핏 독서'] },
-    { name: '제프 베조스', queries: ['제프 베조스 의사결정', '제프 베조스 리더십', '제프 베조스 성공'] },
-    { name: '마크 저커버그', queries: ['마크 저커버그 습관', '마크 저커버그 루틴', '저커버그 경영'] },
-    { name: '레이 달리오', queries: ['레이 달리오 원칙', '레이 달리오 성공', '레이 달리오 인생 원칙'] },
-    { name: '찰리 멍거', queries: ['찰리 멍거 멘탈모델', '찰리 멍거 지혜', '찰리 멍거 투자 철학'] },
-    { name: '샘 올트만', queries: ['샘 올트만 생산성', '샘 올트만 AI', '샘 올트만 성공'] },
-    { name: '앤드류 휴버만', queries: ['앤드류 휴버만 루틴', '앤드류 휴버만 수면', '휴버만 집중력', '휴버만 습관'] },
-    { name: '팀 페리스', queries: ['팀 페리스 자기관리', '팀 페리스 습관', '팀 페리스 루틴'] },
-    { name: '사이먼 시넥', queries: ['사이먼 시넥 리더십', '사이먼 시넥 WHY', '사이먼 시넥 동기부여'] },
-    { name: '조던 피터슨', queries: ['조던 피터슨 자기계발', '조던 피터슨 습관', '조던 피터슨 인생 조언'] },
-    { name: '데이비드 고긴스', queries: ['데이비드 고긴스 멘탈', '고긴스 극복', '고긴스 자기규율'] },
-    { name: '토니 로빈스', queries: ['토니 로빈스 동기부여', '토니 로빈스 성공', '토니 로빈스 습관'] },
-    { name: '손정의', queries: ['손정의 비전', '손정의 경영', '손정의 성공'] },
-    { name: '아놀드 슈워제네거', queries: ['아놀드 슈워제네거 규율', '슈워제네거 성공', '슈워제네거 습관'] },
-    { name: '제임스 클리어', queries: ['제임스 클리어 습관', '아토믹 해빗', '습관의 힘'] },
-    { name: '네이벌 라비칸트', queries: ['네이벌 라비칸트', '네이벌 라비칸트 부자', '네이벌 라비칸트 지혜'] },
-    { name: '잭 마', queries: ['잭 마 성공', '마윈 경영', '잭 마 창업'] },
-    { name: '손흥민', queries: ['손흥민 루틴', '손흥민 습관', '손흥민 자기관리'] },
-    { name: '정주영', queries: ['정주영 성공', '정주영 경영 철학', '정주영 리더십'] },
-    { name: '이건희', queries: ['이건희 경영', '이건희 삼성', '이건희 리더십'] },
-];
+/**
+ * Gemini로 랜덤 유명인 5명 + 한국어 검색 키워드 생성
+ */
+async function generateRandomPersons(): Promise<{ name: string; query: string }[]> {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error('GEMINI_API_KEY가 설정되지 않았습니다.');
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    const prompt = `전 세계에서 유명한 인물 5명을 랜덤으로 추천해주세요.
+
+조건:
+- 각 인물은 자기계발, 습관, 성공 철학, 리더십, 학습법, 경영, 투자, 멘탈관리, 생산성 중 하나와 관련 있어야 합니다.
+- 기업인, 투자자, 과학자, 작가, 운동선수, 정치인, 인플루언서 등 다양한 분야에서 골고루 선택하세요.
+- 유튜브에서 이 인물에 대한 한국어 영상이 있을 만한 사람이어야 합니다.
+- 매번 새로운 조합을 만들어주세요. 다양하게!
+- 역사적 인물(벤자민 프랭클린, 나폴레옹 등)도 포함 가능합니다.
+
+응답 형식 (반드시 JSON 배열만, 설명 없이):
+[
+  {"name": "일론 머스크", "query": "일론 머스크 학습법"},
+  {"name": "오프라 윈프리", "query": "오프라 윈프리 아침 루틴"},
+  {"name": "손흥민", "query": "손흥민 자기관리"},
+  {"name": "워렌 버핏", "query": "워렌 버핏 습관"},
+  {"name": "앤드류 휴버만", "query": "앤드류 휴버만 수면 루틴"}
+]
+
+반드시 한국어 query를 생성하세요. JSON 배열만 반환하세요.`;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const text = result.response.text().trim();
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (!jsonMatch) throw new Error('JSON 파싱 실패');
+
+        const persons: { name: string; query: string }[] = JSON.parse(jsonMatch[0]);
+        if (!Array.isArray(persons) || persons.length === 0) throw new Error('빈 배열');
+
+        return persons.slice(0, 5);
+    } catch (error) {
+        console.error('[LLM] 유명인 생성 실패, 폴백 사용:', error);
+        // 폴백: 기본 인물 5명
+        return [
+            { name: '일론 머스크', query: '일론 머스크 습관' },
+            { name: '젠슨 황', query: '젠슨 황 리더십' },
+            { name: '빌 게이츠', query: '빌 게이츠 독서' },
+            { name: '데이비드 고긴스', query: '데이비드 고긴스 멘탈' },
+            { name: '스티브 잡스', query: '스티브 잡스 사고방식' },
+        ];
+    }
+}
 
 // 한글 포함 여부 체크
 function hasKorean(text: string): boolean {
     return /[가-힣]/.test(text);
-}
-
-/**
- * 인물 목록에서 랜덤 5명 선택 (매번 다른 인물)
- */
-function pickRandomPersons(count: number): typeof PERSON_KEYWORDS {
-    const shuffled = [...PERSON_KEYWORDS].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
 }
 
 export async function searchYouTubeVideos(
@@ -55,19 +73,18 @@ export async function searchYouTubeVideos(
         throw new Error('YOUTUBE_API_KEY 환경변수가 설정되지 않았습니다.');
     }
 
-    // ★ 매번 랜덤 5명 선택 → 최소 5개 영상 보장
-    const persons = pickRandomPersons(5);
+    // ★ Gemini가 매번 새로운 유명인 5명 생성
+    const persons = await generateRandomPersons();
+    console.log('[YouTube] 이번 검색 인물:', persons.map(p => p.name).join(', '));
+
     const allVideos: YouTubeVideo[] = [];
     const seenIds = new Set(usedIds);
 
     for (const person of persons) {
         try {
-            // 인물별 쿼리 중 1개 랜덤 선택
-            const query = person.queries[Math.floor(Math.random() * person.queries.length)];
-
             const searchParams = new URLSearchParams({
                 part: 'snippet',
-                q: query,
+                q: person.query,
                 type: 'video',
                 order: 'relevance',
                 regionCode: 'KR',
@@ -78,7 +95,7 @@ export async function searchYouTubeVideos(
 
             const searchRes = await fetch(`${YOUTUBE_API_BASE}/search?${searchParams}`);
             if (!searchRes.ok) {
-                console.error(`[YouTube] 검색 실패 (${query}):`, searchRes.status);
+                console.error(`[YouTube] 검색 실패 (${person.query}):`, searchRes.status);
                 continue;
             }
 
@@ -102,7 +119,7 @@ export async function searchYouTubeVideos(
 
             const statsData = await statsRes.json();
 
-            // 이 인물에서 가장 좋은 한국어 영상 1개만 선택
+            // 이 인물에서 가장 좋은 한국어 영상 1개 선택
             let bestVideo: YouTubeVideo | null = null;
             let bestViews = 0;
 
@@ -110,7 +127,6 @@ export async function searchYouTubeVideos(
                 if (seenIds.has(item.id)) continue;
 
                 const title = item.snippet?.title || '';
-                // ★ 한국어 제목 영상만 (영어 영상 제외)
                 if (!hasKorean(title)) continue;
 
                 const viewCount = parseInt(item.statistics?.viewCount || '0', 10);
