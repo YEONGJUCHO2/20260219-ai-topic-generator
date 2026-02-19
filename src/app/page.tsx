@@ -17,9 +17,15 @@ export default function Dashboard() {
 
   // === 초기 로딩 ===
   useEffect(() => {
-    const saved = localStorage.getItem("analysis_history_v3");
-    if (saved) {
-      setHistory(JSON.parse(saved));
+    try {
+      const saved = localStorage.getItem("analysis_history_v3");
+      if (saved) {
+        setHistory(JSON.parse(saved));
+      }
+    } catch (err) {
+      console.error("히스토리 로드 실패:", err);
+      // 잘못된 데이터 삭제
+      localStorage.removeItem("analysis_history_v3");
     }
   }, []);
 
@@ -32,15 +38,21 @@ export default function Dashboard() {
 
     try {
       const res = await fetch("/api/suggest");
+      if (!res.ok) throw new Error(`API Error: ${res.status}`);
+
       const data = await res.json();
 
-      if (data.success) {
+      if (data.success && Array.isArray(data.habits)) {
         setHabits(data.habits);
       } else {
-        alert("습관을 불러오는데 실패했습니다: " + data.error);
+        console.error("API response invalid:", data);
+        alert("습관을 불러오는데 실패했습니다.");
+        setHabits([]);
       }
     } catch (err) {
-      alert("네트워크 에러가 발생했습니다.");
+      console.error("Fetch failed:", err);
+      alert("네트워크 에러가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      setHabits([]);
     } finally {
       setLoading(false);
     }
