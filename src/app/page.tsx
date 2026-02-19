@@ -81,15 +81,21 @@ export default function Dashboard() {
             personTitle: data.result.detail?.personTitle || habit.category,
             coreMessage: data.result.detail?.coreMessage || "핵심 메시지를 생성하지 못했습니다.",
             description: data.result.detail?.description || "설명을 생성하지 못했습니다.",
-            actionGuide: Array.isArray(data.result.detail?.actionGuide) ? data.result.detail.actionGuide : [],
+            actionGuide: Array.isArray(data.result.detail?.actionGuide)
+              ? data.result.detail.actionGuide.map((i: any) => typeof i === 'string' ? i : JSON.stringify(i))
+              : [],
             example: data.result.detail?.example || "예시를 생성하지 못했습니다.",
             difficulty: data.result.detail?.difficulty || habit.difficulty,
           },
           vibeCoding: {
             appName: data.result.vibeCoding?.appName || "습관 앱",
             description: data.result.vibeCoding?.description || "습관을 도와주는 앱",
-            features: Array.isArray(data.result.vibeCoding?.features) ? data.result.vibeCoding.features : [],
-            techStack: Array.isArray(data.result.vibeCoding?.techStack) ? data.result.vibeCoding.techStack : [],
+            features: Array.isArray(data.result.vibeCoding?.features)
+              ? data.result.vibeCoding.features.map((i: any) => typeof i === 'string' ? i : JSON.stringify(i))
+              : [],
+            techStack: Array.isArray(data.result.vibeCoding?.techStack)
+              ? data.result.vibeCoding.techStack.map((i: any) => typeof i === 'string' ? i : JSON.stringify(i))
+              : [],
             difficultyLevel: data.result.vibeCoding?.difficultyLevel || 2,
             prompt: data.result.vibeCoding?.prompt || "습관 앱을 만들어주세요.",
           },
