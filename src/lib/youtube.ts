@@ -64,6 +64,16 @@ function hasKorean(text: string): boolean {
     return /[가-힣]/.test(text);
 }
 
+// ISO 8601 duration → 초 변환 (PT1H2M3S → 3723)
+function parseDuration(iso: string): number {
+    const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return 0;
+    const h = parseInt(match[1] || '0', 10);
+    const m = parseInt(match[2] || '0', 10);
+    const s = parseInt(match[3] || '0', 10);
+    return h * 3600 + m * 60 + s;
+}
+
 export async function searchYouTubeVideos(
     offset: number = 0,
     usedIds: string[] = []
@@ -109,7 +119,7 @@ export async function searchYouTubeVideos(
             if (videoIds.length === 0) continue;
 
             const statsParams = new URLSearchParams({
-                part: 'statistics,snippet',
+                part: 'statistics,snippet,contentDetails',
                 id: videoIds.join(','),
                 key: apiKey,
             });
@@ -128,6 +138,10 @@ export async function searchYouTubeVideos(
 
                 const title = item.snippet?.title || '';
                 if (!hasKorean(title)) continue;
+
+                // ★ 숏폼 제외 (90초 이하)
+                const duration = parseDuration(item.contentDetails?.duration || '');
+                if (duration < 90) continue;
 
                 const viewCount = parseInt(item.statistics?.viewCount || '0', 10);
                 if (viewCount < 500) continue;
