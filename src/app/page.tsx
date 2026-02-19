@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { HabitSuggestion, AnalysisResult } from "@/lib/types";
+import { auth, db, googleProvider } from "@/lib/firebase";
+import { signInWithPopup, signOut, onAuthStateChanged, User } from "firebase/auth";
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, orderBy, limit, setDoc } from "firebase/firestore";
 
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
@@ -14,19 +17,58 @@ export default function Dashboard() {
   const [history, setHistory] = useState<AnalysisResult[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Hydration 방지
+  const [user, setUser] = useState<User | null>(null);
+
+  // Hydration & Auth Listener
   useEffect(() => {
     setMounted(true);
+
+    // Auth 상태 감지
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        loadHistoryFromFirestore(currentUser.uid);
+      } else {
+        loadHistoryFromLocalStorage();
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const loadHistoryFromLocalStorage = () => {
     try {
       const saved = localStorage.getItem("analysis_history_v3");
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) setHistory(parsed);
+      } else {
+        setHistory([]);
       }
     } catch {
       localStorage.removeItem("analysis_history_v3");
+      setHistory([]);
     }
-  }, []);
+  };
+
+  const loadHistoryFromFirestore = async (uid: string) => {
+    try {
+      const q = query(
+        collection(db, "users", uid, "habits"),
+        orderBy("createdAt", "desc"),
+        limit(50)
+      );
+      const querySnapshot = await getDocs(q);
+      const loadedHistory: AnalysisResult[] = [];
+      querySnapshot.forEach((doc) => {
+        loadedHistory.push(doc.data() as AnalysisResult);
+      });
+      setHistory(loadedHistory);
+    } catch (error) {
+      console.error("Error loading history:", error);
+      // 실패 시 로컬 스토리지 시도하지 않음 (데이터 불일치 방지)
+    }
+  };
 
   if (!mounted) return null;
 
@@ -107,7 +149,7 @@ export default function Dashboard() {
 
         const newHistory = [safeResult, ...history].slice(0, 50);
         setHistory(newHistory);
-        localStorage.setItem("analysis_history_v3", JSON.stringify(newHistory));
+        saveToHistory(safeResult); // 저장 로직 분리
       } else {
         alert("분석 실패: " + (data.error || "알 수 없는 에러"));
         setStep("habits");
@@ -135,11 +177,89 @@ export default function Dashboard() {
     showToast("📋 프롬프트가 복사되었습니다!");
   };
 
-  const deleteHistory = (id: string) => {
+  const saveToHistory = async (item: AnalysisResult) => {
+    if (user) {
+      // Firestore 저장
+      try {
+        await setDoc(doc(db, "users", user.uid, "habits", item.id), item);
+      } catch (e) {
+        console.error("Firestore save error:", e);
+        showToast("클라우드 저장 실패 (로컬에만 저장됩니다)");
+      }
+    } else {
+      // LocalStorage 저장의 경우 전체 리스트 저장 필요
+      const current = JSON.parse(localStorage.getItem("analysis_history_v3") || "[]");
+      const updated = [item, ...current].slice(0, 50);
+      localStorage.setItem("analysis_history_v3", JSON.stringify(updated));
+    }
+  };
+
+  const deleteHistory = async (id: string) => {
     const updated = history.filter(h => h.id !== id);
     setHistory(updated);
-    localStorage.setItem("analysis_history_v3", JSON.stringify(updated));
+
+    if (user) {
+      try {
+        await deleteDoc(doc(db, "users", user.uid, "habits", id));
+      } catch (e) {
+        console.error("Firestore delete error:", e);
+        showToast("삭제 중 오류가 발생했습니다.");
+      }
+    } else {
+      localStorage.setItem("analysis_history_v3", JSON.stringify(updated));
+    }
     showToast("삭제되었습니다.");
+  };
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      showToast("로그인되었습니다! 습관을 불러옵니다...");
+    } catch (error) {
+      console.error("Login failed", error);
+      showToast("로그인 실패");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      showToast("로그아웃되었습니다.");
+      setHistory([]); // 초기화 후 로컬 데이터 로드될 것임
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
+  const sendEmail = async (item: AnalysisResult) => {
+    if (!user || !user.email) return;
+
+    const confirmSend = confirm(`${user.email} 주소로 습관 가이드를 보낼까요?`);
+    if (!confirmSend) return;
+
+    try {
+      showToast("이메일 발송 중...");
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          habitTitle: item.suggestion?.title,
+          habitDesc: item.detail?.description,
+          actionGuide: item.detail?.actionGuide
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        showToast("✅ 이메일이 발송되었습니다!");
+      } else {
+        alert("발송 실패: " + data.error);
+      }
+    } catch (e) {
+      console.error(e);
+      showToast("이메일 발송 중 오류가 발생했습니다.");
+    }
   };
 
   const getStepState = (s: string) => {
@@ -185,6 +305,20 @@ export default function Dashboard() {
           >
             📚 나의 습관 노트 ({history.length})
           </button>
+        )}
+
+        {/* 로그인/로그아웃 버튼 */}
+        {!user ? (
+          <button className="btn btn-secondary" onClick={handleLogin} style={{ marginLeft: "auto" }}>
+            🔑 구글 로그인
+          </button>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
+            <span style={{ fontSize: 14, color: "#aaa" }}>{user.displayName}님</span>
+            <button className="btn btn-secondary" onClick={handleLogout}>
+              로그아웃
+            </button>
+          </div>
         )}
       </div>
 
@@ -323,6 +457,15 @@ export default function Dashboard() {
                     <div className="note-footer">
                       <span className="note-category">🏷️ {item.suggestion?.category || ""}</span>
                       <span className="note-date">{item.createdAt ? new Date(item.createdAt).toLocaleDateString("ko-KR") : ""}</span>
+                      {user && (
+                        <button
+                          className="btn-email"
+                          onClick={(e) => { e.stopPropagation(); sendEmail(item); }}
+                          style={{ marginLeft: 10, background: "none", border: "1px solid #555", borderRadius: 4, color: "#ccc", cursor: "pointer", fontSize: 12, padding: "2px 6px" }}
+                        >
+                          📧 메일 보내기
+                        </button>
+                      )}
                     </div>
                   </div>
                   <button className="note-delete" onClick={(e) => { e.stopPropagation(); deleteHistory(item.id); }}>
