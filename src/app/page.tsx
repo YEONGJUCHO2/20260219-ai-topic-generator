@@ -38,7 +38,7 @@ export default function Dashboard() {
 
   const loadHistoryFromLocalStorage = () => {
     try {
-      const saved = localStorage.getItem("analysis_history_v3");
+      const saved = localStorage.getItem("analysis_history_v4");
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) setHistory(parsed);
@@ -46,7 +46,7 @@ export default function Dashboard() {
         setHistory([]);
       }
     } catch {
-      localStorage.removeItem("analysis_history_v3");
+      localStorage.removeItem("analysis_history_v4");
       setHistory([]);
     }
   };
@@ -188,9 +188,9 @@ export default function Dashboard() {
       }
     } else {
       // LocalStorage 저장의 경우 전체 리스트 저장 필요
-      const current = JSON.parse(localStorage.getItem("analysis_history_v3") || "[]");
+      const current = JSON.parse(localStorage.getItem("analysis_history_v4") || "[]");
       const updated = [item, ...current].slice(0, 50);
-      localStorage.setItem("analysis_history_v3", JSON.stringify(updated));
+      localStorage.setItem("analysis_history_v4", JSON.stringify(updated));
     }
   };
 
@@ -206,7 +206,7 @@ export default function Dashboard() {
         showToast("삭제 중 오류가 발생했습니다.");
       }
     } else {
-      localStorage.setItem("analysis_history_v3", JSON.stringify(updated));
+      localStorage.setItem("analysis_history_v4", JSON.stringify(updated));
     }
     showToast("삭제되었습니다.");
   };
@@ -277,7 +277,7 @@ export default function Dashboard() {
         setHistory([]);
         showToast("모든 노트가 삭제되었습니다.");
       } else {
-        localStorage.removeItem("analysis_history_v3");
+        localStorage.removeItem("analysis_history_v4");
         setHistory([]);
         showToast("모든 노트가 삭제되었습니다.");
       }
