@@ -12,7 +12,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 export async function filterFamousOnly(videos: YouTubeVideo[]): Promise<YouTubeVideo[]> {
   if (videos.length === 0) return [];
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro-preview-05-06' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const videoList = videos.map((v, i) => `${i}. "${v.title}" (채널: ${v.channelTitle})`).join('\n');
 
@@ -61,7 +61,7 @@ ${videoList}
 export async function analyzeHabit(
   video: YouTubeVideo
 ): Promise<{ analysis: HabitAnalysis; vibeCoding: VibeCodingIdea }> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro-preview-05-06' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const prompt = `아래 유튜브 영상의 내용을 분석해주세요.
 

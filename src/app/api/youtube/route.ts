@@ -24,8 +24,19 @@ export async function GET(req: NextRequest) {
         // 2. AI 필터링: 유명인 영상만 추출
         const famousVideos = await filterFamousOnly(rawVideos);
 
-        // 3. 상위 5개만 반환
-        const top5 = famousVideos.slice(0, 5);
+        // 3. 최소 5개 보장 (AI 필터 결과 부족 시 원본에서 보충)
+        const finalVideos = [...famousVideos];
+        if (finalVideos.length < 5) {
+            const usedSet = new Set(finalVideos.map(v => v.videoId));
+            for (const v of rawVideos) {
+                if (finalVideos.length >= 5) break;
+                if (!usedSet.has(v.videoId)) {
+                    finalVideos.push(v);
+                    usedSet.add(v.videoId);
+                }
+            }
+        }
+        const top5 = finalVideos.slice(0, 5);
 
         return NextResponse.json({
             success: true,
