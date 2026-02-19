@@ -5,6 +5,7 @@ import { HabitSuggestion, AnalysisResult } from "@/lib/types";
 
 export default function Dashboard() {
   // === 상태 ===
+  const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<"idle" | "habits" | "analyzing" | "done">("idle");
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
@@ -15,8 +16,9 @@ export default function Dashboard() {
   const [history, setHistory] = useState<AnalysisResult[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
-  // === 초기 로딩 ===
+  // === 초기 로딩 (Hydration Error 방지) ===
   useEffect(() => {
+    setMounted(true);
     try {
       const saved = localStorage.getItem("analysis_history_v3");
       if (saved) {
@@ -28,6 +30,8 @@ export default function Dashboard() {
       localStorage.removeItem("analysis_history_v3");
     }
   }, []);
+
+  if (!mounted) return null; // 서버 사이드 렌더링 방지 (Hydration Error 해결)
 
   // === 1. 습관 제안 받기 (AI) ===
   const fetchHabits = async () => {

@@ -70,7 +70,11 @@ export async function analyzeHabit(habit: HabitSuggestion): Promise<{ detail: Ha
 
     // AI가 가끔 personName 등을 포함할 수도 있으니, 우리가 정의한 걸 우선시하도록 순서 조정
     const finalDetail: HabitDetail = {
-      ...parsedDetail,
+      coreMessage: parsedDetail.coreMessage || '핵심 메시지 분석 불가',
+      description: parsedDetail.description || '상세 설명이 생성되지 않았습니다.',
+      actionGuide: Array.isArray(parsedDetail.actionGuide) ? parsedDetail.actionGuide : [],
+      example: parsedDetail.example || '예시가 생성되지 않았습니다.',
+      ...parsedDetail, // AI 응답 덮어쓰기 (단, 위 필드들이 있으면 AI 것 사용)
       personName: habit.person,
       personTitle: `${habit.category} 전문가`,
       difficulty: habit.difficulty
