@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadTitanDb, matchTrendsWithTitans } from "@/lib/llm";
-import { searchPapersForMatch } from "@/lib/scholarly";
+import { matchTrendsWithTitans } from "@/lib/llm";
+import { loadTitanDb } from "@/lib/titan-db";
+import { searchPapersForMatch } from "@/lib/semantic-scholar";
 import { searchNaverNews } from "@/lib/naver";
 
 // 타임아웃 래퍼 유틸리티
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
                     const papers = await withTimeout(papersPromise, 4000, []);
 
                     // 논문이 없으면 뉴스 검색 (타임아웃 3초)
-                    let news = [];
+                    let news: any[] = [];
                     if (!papers || papers.length === 0) {
                         const newsQuery = `${match.trend.keyword} ${match.titan.name}`;
                         news = await withTimeout(
