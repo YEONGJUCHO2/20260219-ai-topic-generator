@@ -74,13 +74,20 @@ export async function analyzeHabit(habit: HabitSuggestion): Promise<{ detail: Ha
       description: parsedDetail.description || '상세 설명이 생성되지 않았습니다.',
       actionGuide: Array.isArray(parsedDetail.actionGuide) ? parsedDetail.actionGuide : [],
       example: parsedDetail.example || '예시가 생성되지 않았습니다.',
-      ...parsedDetail, // AI 응답 덮어쓰기 (단, 위 필드들이 있으면 AI 것 사용)
       personName: habit.person,
       personTitle: `${habit.category} 전문가`,
       difficulty: habit.difficulty
     };
 
-    const vibeCoding: VibeCodingIdea = JSON.parse(vibeText.match(/\{[\s\S]*\}/)?.[0] || '{}');
+    const parsedVibe = JSON.parse(vibeText.match(/\{[\s\S]*\}/)?.[0] || '{}');
+    const vibeCoding: VibeCodingIdea = {
+      appName: parsedVibe.appName || '습관 앱',
+      description: parsedVibe.description || '습관 실천을 돕는 앱',
+      features: Array.isArray(parsedVibe.features) ? parsedVibe.features : [],
+      techStack: Array.isArray(parsedVibe.techStack) ? parsedVibe.techStack : [],
+      difficultyLevel: parsedVibe.difficultyLevel || 2,
+      prompt: parsedVibe.prompt || '습관 관리 앱을 만들어주세요.',
+    };
 
     return {
       detail: finalDetail,
