@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchYouTubeVideos } from '@/lib/youtube';
-import { filterFamousOnly } from '@/lib/llm';
 
 export async function GET(req: NextRequest) {
     try {
@@ -9,34 +8,21 @@ export async function GET(req: NextRequest) {
         const usedIdsParam = searchParams.get('usedIds') || '';
         const usedIds = usedIdsParam ? usedIdsParam.split(',') : [];
 
-        // 1. YouTube API로 영상 검색
-        const { videos: rawVideos, hasMore } = await searchYouTubeVideos(offset, usedIds);
+        // YouTube API로 한국 영상 검색 (이미 유명인 이름 매칭 + 정렬됨)
+        const { videos, hasMore } = await searchYouTubeVideos(offset, usedIds);
 
-        if (rawVideos.length === 0) {
+        if (videos.length === 0) {
             return NextResponse.json({
                 success: true,
                 videos: [],
                 hasMore: false,
-                message: '검색 결과가 없습니다. 다른 키워드로 시도해보세요.',
+                count: 0,
+                message: '검색 결과가 없습니다. 다시 시도해보세요.',
             });
         }
 
-        // 2. AI 필터링: 유명인 영상만 추출
-        const famousVideos = await filterFamousOnly(rawVideos);
-
-        // 3. 최소 5개 보장 (AI 필터 결과 부족 시 원본에서 보충)
-        const finalVideos = [...famousVideos];
-        if (finalVideos.length < 5) {
-            const usedSet = new Set(finalVideos.map(v => v.videoId));
-            for (const v of rawVideos) {
-                if (finalVideos.length >= 5) break;
-                if (!usedSet.has(v.videoId)) {
-                    finalVideos.push(v);
-                    usedSet.add(v.videoId);
-                }
-            }
-        }
-        const top5 = finalVideos.slice(0, 5);
+        // 상위 5개 반환
+        const top5 = videos.slice(0, 5);
 
         return NextResponse.json({
             success: true,
