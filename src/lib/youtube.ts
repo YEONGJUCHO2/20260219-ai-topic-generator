@@ -9,65 +9,32 @@ const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 const KEYWORD_GROUPS = [
     // 그룹 1: 사고법·원칙
     [
-        '일론 머스크 제1원칙', '일론 머스크 습관', '일론 머스크 성공',
-        '스티브 잡스 사고방식', '스티브 잡스 습관',
-        '제프 베조스 의사결정', '제프 베조스 성공 비결',
+        '일론 머스크 학습법', '일론 머스크 제1원칙', '일론 머스크 사고법',
+        '스티브 잡스 사고방식', '제프 베조스 의사결정',
         '레이 달리오 원칙', '찰리 멍거 멘탈모델',
         '샘 올트만 생산성',
     ],
-    // 그룹 2: 습관·루틴·자기관리
+    // 그룹 2: 습관·루틴
     [
-        '젠슨 황 습관', '젠슨 황 성공 비결', '젠슨 황 루틴',
-        '빌 게이츠 독서 습관', '빌 게이츠 루틴',
-        '마크 저커버그 습관', '워렌 버핏 하루 루틴',
-        '앤드류 휴버만 루틴', '앤드류 휴버만 수면',
-        '팀 페리스 자기관리', '오프라 윈프리 아침 루틴',
+        '젠슨 황 습관', '젠슨 황 성공 비결',
+        '빌 게이츠 독서', '빌 게이츠 습관',
+        '워렌 버핏 하루', '워렌 버핏 습관',
+        '앤드류 휴버만 루틴', '마크 저커버그 습관',
     ],
-    // 그룹 3: 리더십·성공 철학
+    // 그룹 3: 리더십·철학
     [
-        '젠슨 황 리더십', '사이먼 시넥 리더십',
-        '잭 마 성공 철학', '마윈 경영',
-        '일론 머스크 경영 철학', '손정의 비전',
-        '팀 쿡 리더십', '이재용 습관',
-        '정주영 성공', '이건희 경영 철학',
+        '젠슨 황 리더십', '일론 머스크 경영',
+        '사이먼 시넥 리더십', '잭 마 성공',
+        '손정의 비전', '정주영 성공',
+        '이건희 경영', '팀 쿡 리더십',
     ],
-    // 그룹 4: 멘탈·집중력·자기극복
+    // 그룹 4: 멘탈·성장
     [
-        '데이비드 고긴스 멘탈', '데이비드 고긴스 극복',
-        '조던 피터슨 자기계발', '조던 피터슨 습관',
-        '토니 로빈스 동기부여', '네이벌 라비칸트 부자',
-        '제임스 클리어 습관의 힘', '아놀드 슈워제네거 규율',
+        '데이비드 고긴스 멘탈', '조던 피터슨 자기계발',
+        '토니 로빈스 동기부여', '네이벌 라비칸트',
+        '제임스 클리어 습관', '아놀드 슈워제네거 규율',
         '손흥민 루틴', '김연아 멘탈',
     ],
-];
-
-// 유명인 이름 목록 (제목 매칭용)
-const FAMOUS_NAMES = [
-    '일론 머스크', 'elon musk', '머스크',
-    '젠슨 황', 'jensen huang',
-    '빌 게이츠', 'bill gates', '게이츠',
-    '스티브 잡스', 'steve jobs', '잡스',
-    '제프 베조스', 'jeff bezos', '베조스',
-    '마크 저커버그', 'mark zuckerberg', '저커버그',
-    '워렌 버핏', 'warren buffett', '버핏',
-    '찰리 멍거', 'charlie munger', '멍거',
-    '레이 달리오', 'ray dalio', '달리오',
-    '샘 올트만', 'sam altman', '올트만',
-    '팀 쿡', 'tim cook',
-    '앤드류 휴버만', 'andrew huberman', '휴버만',
-    '팀 페리스', 'tim ferriss', '페리스',
-    '토니 로빈스', 'tony robbins', '로빈스',
-    '사이먼 시넥', 'simon sinek', '시넥',
-    '조던 피터슨', 'jordan peterson', '피터슨',
-    '데이비드 고긴스', 'david goggins', '고긴스',
-    '네이벌 라비칸트', 'naval ravikant',
-    '제임스 클리어', 'james clear',
-    '오프라 윈프리', 'oprah',
-    '아놀드 슈워제네거', 'arnold',
-    '잭 마', '마윈', 'jack ma',
-    '손정의', '손흥민', '김연아',
-    '이재용', '정주영', '이건희',
-    '오바마', 'obama',
 ];
 
 function pickDiverseKeywords(): string[] {
@@ -75,14 +42,6 @@ function pickDiverseKeywords(): string[] {
         const idx = Math.floor(Math.random() * group.length);
         return group[idx];
     });
-}
-
-/**
- * 제목에 유명인 이름이 포함되어 있는지 체크
- */
-function containsFamousName(title: string): boolean {
-    const lower = title.toLowerCase();
-    return FAMOUS_NAMES.some(name => lower.includes(name.toLowerCase()));
 }
 
 export async function searchYouTubeVideos(
@@ -95,27 +54,22 @@ export async function searchYouTubeVideos(
     }
 
     const selectedKeywords = pickDiverseKeywords();
-
-    // 180일 (반년) — 충분한 결과 확보
-    const daysAgo = new Date();
-    daysAgo.setDate(daysAgo.getDate() - 180);
-    const publishedAfter = daysAgo.toISOString();
-
     const allVideos: YouTubeVideo[] = [];
     const seenIds = new Set(usedIds);
 
     for (const keyword of selectedKeywords) {
         try {
+            // ★ order=relevance (viewCount보다 관련성 높은 결과)
+            // ★ videoDuration 제거 (medium 필터가 결과를 너무 줄임)
+            // ★ publishedAfter 제거 (좋은 영상은 오래된 것도 많음)
             const searchParams = new URLSearchParams({
                 part: 'snippet',
                 q: keyword,
                 type: 'video',
-                order: 'viewCount',
-                publishedAfter,
+                order: 'relevance',
                 regionCode: 'KR',
                 relevanceLanguage: 'ko',
-                maxResults: '15',
-                videoDuration: 'medium',
+                maxResults: '10',
                 key: apiKey,
             });
 
@@ -150,7 +104,8 @@ export async function searchYouTubeVideos(
                 seenIds.add(item.id);
 
                 const viewCount = parseInt(item.statistics?.viewCount || '0', 10);
-                if (viewCount < 3000) continue;
+                // 최소 1000회 (너무 낮으면 품질 낮은 영상 포함됨)
+                if (viewCount < 1000) continue;
 
                 allVideos.push({
                     videoId: item.id,
@@ -166,30 +121,18 @@ export async function searchYouTubeVideos(
                 });
             }
 
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 100));
         } catch (error) {
             console.error(`[YouTube] 키워드 "${keyword}" 검색 에러:`, error);
         }
     }
 
-    // 유명인 이름이 제목에 있는 영상 우선
-    const famous = allVideos.filter(v => containsFamousName(v.title));
-    const others = allVideos.filter(v => !containsFamousName(v.title));
-
     // 조회수 높은순 정렬
-    famous.sort((a, b) => {
-        const aCount = parseInt(a.viewCount.replace(/,/g, ''), 10);
-        const bCount = parseInt(b.viewCount.replace(/,/g, ''), 10);
-        return bCount - aCount;
-    });
-    others.sort((a, b) => {
+    allVideos.sort((a, b) => {
         const aCount = parseInt(a.viewCount.replace(/,/g, ''), 10);
         const bCount = parseInt(b.viewCount.replace(/,/g, ''), 10);
         return bCount - aCount;
     });
 
-    // 유명인 영상 우선 + 나머지로 보충 (최소 10개)
-    const combined = [...famous, ...others].slice(0, 10);
-
-    return { videos: combined, hasMore: true };
+    return { videos: allVideos.slice(0, 10), hasMore: true };
 }
