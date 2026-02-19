@@ -1,32 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeHabit } from '@/lib/llm';
-import { YouTubeVideo } from '@/lib/types';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const video: YouTubeVideo = body.video;
+        const { habit } = body; // habit: HabitSuggestion
 
-        if (!video || !video.title) {
-            return NextResponse.json(
-                { success: false, error: '영상 정보가 필요합니다.' },
-                { status: 400 }
-            );
+        if (!habit || !habit.title || !habit.person) {
+            return NextResponse.json({ success: false, error: '습관 정보 필요' }, { status: 400 });
         }
 
-        // Gemini 2.5 Pro로 분석
-        const { analysis, vibeCoding } = await analyzeHabit(video);
+        const { detail, vibeCoding } = await analyzeHabit(habit);
 
-        return NextResponse.json({
-            success: true,
-            analysis,
+        const result = {
+            id: uuidv4(),
+            suggestion: habit,
+            detail,
             vibeCoding,
-        });
+            createdAt: new Date().toISOString()
+        };
+
+        return NextResponse.json({ success: true, result });
     } catch (error) {
-        console.error('[API /analyze] 에러:', error);
-        return NextResponse.json(
-            { success: false, error: String(error) },
-            { status: 500 }
-        );
+        console.error('[Analyze API] 에러:', error);
+        return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
     }
 }

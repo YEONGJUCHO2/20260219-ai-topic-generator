@@ -1,142 +1,89 @@
 // =============================================
-// Gemini 2.5 Pro 분석 엔진 (v2)
+// Gemini 습관 분석 & 바이브 코딩 (v3)
 // =============================================
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { YouTubeVideo, HabitAnalysis, VibeCodingIdea } from './types';
+import { HabitSuggestion, HabitDetail, VibeCodingIdea } from './types';
 
+// Gemini 인스턴스 (API 키 필요)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-/**
- * 유튜브 영상 목록에서 "누구나 아는 유명인"만 필터링
- */
-export async function filterFamousOnly(videos: YouTubeVideo[]): Promise<YouTubeVideo[]> {
-  if (videos.length === 0) return [];
-
+export async function analyzeHabit(habit: HabitSuggestion): Promise<{ detail: HabitDetail; vibeCoding: VibeCodingIdea }> {
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-  const videoList = videos.map((v, i) => `${i}. "${v.title}" (채널: ${v.channelTitle})`).join('\n');
+  // 1. 습관 상세 분석 & 실천 가이드 생성
+  const habitPrompt = `
+    다음 유명인의 습관/방법론을 상세히 분석하여 누구나 따라 할 수 있는 가이드로 만들어주세요.
 
-  const prompt = `아래 유튜브 영상 목록에서 **세계적으로 유명한 인물**이 주인공으로 다뤄지는 영상만 골라주세요.
+    인물: ${habit.person}
+    습관: ${habit.title}
+    설명: ${habit.description}
 
-매우 엄격한 기준 (반드시 아래에 해당해야만 포함):
-- ✅ 포함: 일론 머스크, 워렌 버핏, 젠슨 황, 빌 게이츠, 제프 베조스, 마크 저커버그, 스티브 잡스, 팀 쿡, 샘 올트만
-- ✅ 포함: 레이 달리오, 찰리 멍거, 피터 린치, 조지 소로스, 짐 로저스
-- ✅ 포함: 앤드류 휴버만, 팀 페리스, 토니 로빈스, 사이먼 시넥, 조던 피터슨, 데이비드 고긴스, 네이벌 라비칸트
-- ✅ 포함: 오프라 윈프리, 오바마, 아놀드 슈워제네거, 잭 마(마윈)
-- ✅ 포함: 손흥민, 이재용, BTS 등 한국인이라면 전국민이 아는 수준만
-- ❌ 절대 제외: 일반 유튜버, 대학생 브이로거, 하버드/스탠퍼드 학생 브이로그
-- ❌ 절대 제외: 채널 구독자가 100만 미만인 무명 인플루언서
-- ❌ 절대 제외: "~친구들", "~의 하루", "~브이로그" 같은 일상 콘텐츠
-- ❌ 절대 제외: 영상 제목에 유명인 이름이 없고 일반적인 자기계발 팁만 다루는 영상
+    요구사항:
+    1. **핵심 메시지**: 이 습관의 본질을 한 줄로 요약
+    2. **상세 설명**: 왜 이 습관이 중요한지, 어떤 효과가 있는지 3~5줄로 설명
+    3. **실천 가이드 (3단계)**: 당장 오늘부터 시작할 수 있는 구체적인 실행 단계 (Step 1, 2, 3)
+    4. **적용 예시**: 일반인(직장인, 학생 등)이 삶에 적용했을 때의 시나리오
 
-핵심: 영상의 주인공이나 핵심 소재가 **위키피디아에 단독 문서가 있을 정도로 유명한 인물**이어야 합니다.
+    응답 형식 (JSON만, 설명 X):
+    {
+      "coreMessage": "가장 중요한 20%에 집중하여 80%의 성과를 내라",
+      "description": "...",
+      "actionGuide": ["Step 1: ...", "Step 2: ...", "Step 3: ..."],
+      "example": "직장인이 아침 9시에 가장 중요한 업무 하나를 끝내고..."
+    }
+    `;
 
-영상 목록:
-${videoList}
+  // 2. 바이브 코딩 아이디어 생성
+  const vibePrompt = `
+    이 습관("${habit.title}" - ${habit.person})을 내 삶에 정착시키기 위해,
+    **나만을 위한 맞춤형 웹 앱(도구)**을 만든다면 어떤 기능이 필요할까요?
+    Cursor나 Replit 같은 AI 코딩 툴에 복사해서 바로 만들 수 있는 기획안을 짜주세요.
 
-응답 형식 (JSON 배열, 인덱스만):
-[0, 3, 7]
+    요구사항:
+    - **앱 이름**: 직관적이고 매력적인 이름
+    - **핵심 기능**: 습관 실천을 돕는 기능 3가지 (예: 타이머, 기록장, 우선순위 필터 등)
+    - **구현 난이도**: 1(매우 쉬움) ~ 5(전문적)
+    - **AI 프롬프트**: "이런 앱을 만들어줘"라고 AI에게 명령할 수 있는 상세 프롬프트 (HTML/CSS/JS 단일 파일 기준)
 
-해당하는 영상이 없으면 빈 배열 [] 을 반환하세요.
-반드시 JSON 배열만 반환하세요. 설명 없이 숫자 배열만.`;
+    응답 형식 (JSON만):
+    {
+      "appName": "5분 몰입 타이머",
+      "description": "5분 동안 오직 한 가지 일에만 집중하도록 돕는 미니멀 타이머",
+      "features": ["남은 시간 시각화", "방해 금지 모드", "성공 횟수 기록"],
+      "techStack": ["HTML", "Vanilla JS", "CSS Grid"],
+      "difficultyLevel": 2,
+      "prompt": "검은 배경에 네온 컬러로 디자인된 5분 타이머 웹앱을 만들어줘. 시작 버튼을 누르면..."
+    }
+    `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const [habitResult, vibeResult] = await Promise.all([
+      model.generateContent(habitPrompt),
+      model.generateContent(vibePrompt)
+    ]);
 
-    // JSON 파싱
-    const jsonMatch = text.match(/\[[\d\s,]*\]/);
-    if (!jsonMatch) return videos.slice(0, 5); // 파싱 실패 시 원본 5개 반환
+    const habitText = habitResult.response.text().trim();
+    const vibeText = vibeResult.response.text().trim();
 
-    const indices: number[] = JSON.parse(jsonMatch[0]);
-    const filtered = indices
-      .filter(i => i >= 0 && i < videos.length)
-      .map(i => videos[i]);
+    const detailStr = habitText.match(/\{[\s\S]*\}/)?.[0] || '{}';
+    const parsedDetail = JSON.parse(detailStr);
 
-    return filtered.length > 0 ? filtered : videos.slice(0, 5);
+    // AI가 가끔 personName 등을 포함할 수도 있으니, 우리가 정의한 걸 우선시하도록 순서 조정
+    const finalDetail: HabitDetail = {
+      ...parsedDetail,
+      personName: habit.person,
+      personTitle: `${habit.category} 전문가`,
+      difficulty: habit.difficulty
+    };
+
+    const vibeCoding: VibeCodingIdea = JSON.parse(vibeText.match(/\{[\s\S]*\}/)?.[0] || '{}');
+
+    return {
+      detail: finalDetail,
+      vibeCoding
+    };
   } catch (error) {
-    console.error('[LLM] 유명인 필터링 에러:', error);
-    return videos.slice(0, 5);
+    console.error('[Analyze] 분석 실패:', error);
+    throw new Error('AI 분석에 실패했습니다.');
   }
-}
-
-/**
- * 선택된 유튜브 영상의 유명인 습관을 AI 분석
- */
-export async function analyzeHabit(
-  video: YouTubeVideo
-): Promise<{ analysis: HabitAnalysis; vibeCoding: VibeCodingIdea }> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-  const prompt = `아래 유튜브 영상의 내용을 분석해주세요.
-
-## 영상 정보
-- 제목: ${video.title}
-- 채널: ${video.channelTitle}
-- 조회수: ${video.viewCount}회
-- 설명: ${video.description.slice(0, 500)}
-
-## 분석 요청
-
-이 영상에서 다루는 유명인의 습관/공부법/자기관리/경제관리 방법에 대해 아래 형식으로 분석해주세요.
-
-### 반드시 아래 JSON 형식으로만 응답하세요:
-
-\`\`\`json
-{
-  "analysis": {
-    "personName": "인물 이름 (예: 일론 머스크)",
-    "personTitle": "인물 직함 (예: 테슬라·스페이스X CEO)",
-    "coreMessage": "이 습관의 핵심을 한 줄로 (예: 하루를 5분 단위로 쪼개서 시간의 밀도를 극대화한다)",
-    "description": "이 습관/방법론에 대한 상세 설명. 왜 효과적인지, 어떤 원리가 있는지 3~5줄로 설명",
-    "actionGuide": [
-      "1단계: 구체적인 실행 방법 (초보자도 바로 시작할 수 있게)",
-      "2단계: 심화 단계 (1주일 후)",
-      "3단계: 습관화 단계 (1달 후)"
-    ],
-    "example": "직장인 A씨(28세, 마케팅)가 이 방법을 적용한다면... (구체적 시나리오로 100자 이상)"
-  },
-  "vibeCoding": {
-    "appName": "이 습관을 실행/추적할 수 있는 앱 이름 (예: 타임 블록 매니저)",
-    "description": "앱이 하는 일 한 줄 설명",
-    "features": [
-      "핵심 기능 1",
-      "핵심 기능 2",
-      "핵심 기능 3"
-    ],
-    "techStack": ["HTML/CSS", "JavaScript"],
-    "difficultyLevel": 2,
-    "prompt": "AI에게 이 앱을 만들어달라고 할 때 사용할 프롬프트. 기능, UI, 동작을 구체적으로 설명한 200자 이상의 프롬프트."
-  }
-}
-\`\`\`
-
-### 난이도 기준 (바이브 코딩 구현 난이도):
-- Level 1: HTML/CSS만으로 구현 (정적 페이지, 체크리스트)
-- Level 2: JavaScript 필요 (타이머, 계산기, 로컬 저장)
-- Level 3: API 연동 (차트, 외부 데이터, DB)
-- Level 4: 백엔드 서버 필요 (인증, 동기화)
-- Level 5: AI/ML 또는 복잡한 시스템
-
-반드시 위 JSON 형식으로만 응답하세요. JSON 외의 텍스트는 포함하지 마세요.`;
-
-  const result = await model.generateContent(prompt);
-  const text = result.response.text().trim();
-
-  // JSON 블록 추출
-  const jsonMatch = text.match(/```json\s*([\s\S]*?)```/) || text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error('AI 응답에서 JSON을 찾을 수 없습니다.');
-  }
-
-  const jsonStr = jsonMatch[1] || jsonMatch[0];
-  const parsed = JSON.parse(jsonStr);
-
-  return {
-    analysis: parsed.analysis,
-    vibeCoding: {
-      ...parsed.vibeCoding,
-      difficultyLevel: Math.min(5, Math.max(1, parsed.vibeCoding.difficultyLevel || 2)),
-    },
-  };
 }

@@ -7,8 +7,8 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const result: AnalysisResult = body.result;
 
-        if (!result || !result.analysis) {
-            return NextResponse.json({ success: false, error: "분석 결과가 없습니다." }, { status: 400 });
+        if (!result || !result.detail || !result.vibeCoding) {
+            return NextResponse.json({ success: false, error: "분석 결과가 올바르지 않습니다." }, { status: 400 });
         }
 
         await sendAnalysisEmail(result);

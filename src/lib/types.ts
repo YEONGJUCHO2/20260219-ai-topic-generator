@@ -1,43 +1,39 @@
 // =============================================
-// v2 타입 정의 — 유명인 습관 분석기
+// v3 타입 정의 — AI 습관 멘토링
 // =============================================
 
-export interface YouTubeVideo {
-    videoId: string;
-    title: string;
-    channelTitle: string;
-    description: string;
-    viewCount: string;       // "1,234,567"
-    publishedAt: string;     // ISO date
-    thumbnailUrl: string;
-    youtubeUrl: string;      // https://youtube.com/watch?v=...
-    suggestion?: string;     // ★ AI 제안 (예: "워렌 버핏의 5/25 법칙 배우기")
-    category?: string;       // ★ AI 분류 (예: "생산성", "투자", "멘탈 관리")
+export interface HabitSuggestion {
+    id: string;              // 고유 ID (UUID 등)
+    person: string;          // 인물 (예: 워렌 버핏)
+    title: string;           // 습관 제목 (예: 5/25 법칙)
+    description: string;     // 한 줄 설명
+    category: string;        // 카테고리 (생산성, 투자, 멘탈 등)
+    difficulty: 'Easy' | 'Medium' | 'Hard'; // 실천 난이도
 }
 
-export interface HabitAnalysis {
-    personName: string;      // 예: 일론 머스크
-    personTitle: string;     // 예: 테슬라·스페이스X CEO
-    coreMessage: string;     // 핵심 한 줄 요약
-    description: string;     // 상세 설명 (3~5줄)
-    actionGuide: string[];   // 내 것으로 만드는 3단계
-    example: string;         // 구체적 적용 예시
-    difficulty?: 'easy' | 'medium' | 'hard'; // ★ 난이도
+export interface HabitDetail {
+    personName: string;
+    personTitle: string;
+    coreMessage: string;
+    description: string;     // 상세 설명
+    actionGuide: string[];   // 실천 가이드 3단계
+    example: string;         // 구체적 예시
+    difficulty?: string;
 }
 
 export interface VibeCodingIdea {
-    appName: string;          // 앱 이름
-    description: string;      // 앱 설명
-    features: string[];       // 핵심 기능 3개
-    techStack: string[];      // 예: ["HTML/CSS", "JavaScript"]
-    difficultyLevel: 1 | 2 | 3 | 4 | 5;  // 바이브 코딩 구현 난이도
-    prompt: string;           // AI에 복사-붙여넣기용 프롬프트
+    appName: string;
+    description: string;
+    features: string[];
+    techStack: string[];
+    difficultyLevel: 1 | 2 | 3 | 4 | 5;
+    prompt: string;
 }
 
 export interface AnalysisResult {
     id: string;
-    video: YouTubeVideo;
-    analysis: HabitAnalysis;
+    suggestion: HabitSuggestion;
+    detail: HabitDetail;
     vibeCoding: VibeCodingIdea;
-    createdAt: string;       // ISO date
+    createdAt: string;
 }

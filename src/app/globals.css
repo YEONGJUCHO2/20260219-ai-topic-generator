@@ -755,3 +755,331 @@ body::before {
   text-transform: uppercase;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
+
+/* 습관 카드 */
+.habit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.habit-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  /* 얇은 테두리 */
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.habit-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+  background: var(--bg-card-hover);
+  border-color: var(--accent-purple);
+}
+
+.habit-person {
+  font-size: 14px;
+  color: var(--accent-purple-light);
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.habit-title {
+  font-size: 20px;
+  color: var(--text-primary);
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.habit-desc {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.habit-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 16px;
+  margin-top: auto;
+}
+
+.difficulty-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.difficulty-Easy {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-green);
+}
+
+.difficulty-Medium {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--accent-orange);
+}
+
+.difficulty-Hard {
+  background: rgba(236, 72, 153, 0.15);
+  color: var(--accent-pink);
+}
+
+/* === 결과 페이지 (v3) === */
+.result-container {
+  padding: 20px 0;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.result-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.highlight {
+  color: var(--accent-purple-light);
+}
+
+.core-message {
+  font-size: 18px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.result-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .result-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analysis-card,
+.vibe-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card-header {
+  padding: 20px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vibe-header {
+  background: linear-gradient(90deg, #667eea11, #764ba211);
+}
+
+.card-body {
+  padding: 24px;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.section h4 {
+  font-size: 14px;
+  color: var(--accent-cyan);
+  margin-bottom: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.description-text,
+.example-box {
+  line-height: 1.7;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.example-box {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 3px solid var(--accent-cyan);
+}
+
+/* Action Guide */
+.action-list {
+  list-style: none;
+  padding: 0;
+}
+
+.action-item {
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.step-idx {
+  background: var(--accent-purple);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+/* Vibe Coding Part */
+.app-name {
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+
+.app-desc {
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.feature-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.feature-tag {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tech-stack {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.tech-tag {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #888;
+}
+
+.prompt-box {
+  background: #000;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.prompt-box pre {
+  white-space: pre-wrap;
+  font-family: monospace;
+  color: #0f0;
+  font-size: 13px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.btn-copy {
+  width: 100%;
+  background: #222;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: 600;
+}
+
+.btn-copy:hover {
+  background: #333;
+  border-color: #666;
+}
+
+.prompt-help {
+  font-size: 12px;
+  color: #666;
+  margin-top: 12px;
+  text-align: center;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-back:hover {
+  color: #fff;
+}
