@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateHabits } from '@/lib/habit';
 
+// ★ 중요: 매번 새로운 결과를 위해 캐싱 끄기
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const habits = await generateHabits();

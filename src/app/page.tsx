@@ -37,7 +37,7 @@ export default function Dashboard() {
     setResult(null);
 
     try {
-      const res = await fetch("/api/suggest");
+      const res = await fetch(`/api/suggest?t=${Date.now()}`);
       if (!res.ok) throw new Error(`API Error: ${res.status}`);
 
       const data = await res.json();
