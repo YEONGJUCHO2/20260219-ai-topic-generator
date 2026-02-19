@@ -5,46 +5,40 @@ import { YouTubeVideo } from './types';
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 
-// ★ 반드시 세계적으로 유명한 인물 이름이 들어간 키워드만 사용
+// ★ 습관·원칙·사고법·리더십 중심 키워드 (경제 편중 해소)
 const KEYWORD_GROUPS = [
-    // 그룹 1: 테크/기업 리더
+    // 그룹 1: 사고법·원칙
     [
-        'Elon Musk habit', '일론 머스크 습관', '일론 머스크 루틴',
-        'Jensen Huang leadership', '젠슨 황 성공 비결',
-        'Bill Gates routine', '빌 게이츠 습관',
-        'Jeff Bezos habit', '제프 베조스 경영',
-        'Mark Zuckerberg routine', '마크 저커버그',
-        'Steve Jobs philosophy', '스티브 잡스 습관',
-        'Sam Altman productivity', '샘 올트만',
+        '일론 머스크 제1원칙', 'Elon Musk first principles',
+        '찰리 멍거 멘탈모델', '레이 달리오 원칙',
+        '제프 베조스 의사결정', 'Jeff Bezos decision making',
+        '스티브 잡스 사고방식', 'Steve Jobs think different',
+        '샘 올트만 생산성', 'Sam Altman productivity',
     ],
-    // 그룹 2: 투자/경제 거물
+    // 그룹 2: 습관·루틴·자기관리
     [
-        'Warren Buffett investing', '워렌 버핏 습관',
-        'Ray Dalio principles', '레이 달리오 원칙',
-        'Charlie Munger wisdom', '찰리 멍거 투자 철학',
-        'Peter Lynch investing', '피터 린치',
-        'George Soros strategy', '조지 소로스',
-        'Jim Rogers investing', '짐 로저스',
-        'Howard Marks investing', '하워드 막스',
+        '젠슨 황 습관', 'Jensen Huang daily routine',
+        '빌 게이츠 독서 습관', 'Bill Gates reading habit',
+        '앤드류 휴버만 루틴', 'Andrew Huberman morning routine',
+        '팀 페리스 자기관리', 'Tim Ferriss habit',
+        '오프라 윈프리 루틴', '마크 저커버그 습관',
+        '오바마 루틴', '아놀드 슈워제네거 규율',
     ],
-    // 그룹 3: 세계적 인플루언서/과학자
+    // 그룹 3: 리더십·성공 철학
     [
-        'Andrew Huberman routine', '앤드류 휴버만 루틴',
-        'Tim Ferriss habit', '팀 페리스 습관',
-        'Tony Robbins morning', '토니 로빈스',
-        'Simon Sinek leadership', '사이먼 시넥',
-        'Naval Ravikant', '네이벌 라비칸트',
-        'Jordan Peterson habit', '조던 피터슨 습관',
-        'David Goggins mindset', '데이비드 고긴스',
+        '젠슨 황 리더십', 'Jensen Huang leadership',
+        '사이먼 시넥 리더십', 'Simon Sinek why',
+        '잭 마 성공 철학', 'Jack Ma philosophy',
+        '팀 쿡 리더십', 'Satya Nadella leadership',
+        '일론 머스크 경영 철학', '손정의 비전',
     ],
-    // 그룹 4: 유명인 자기관리/독서/루틴
+    // 그룹 4: 멘탈·집중력·자기극복
     [
-        'Oprah Winfrey routine', '오프라 윈프리 습관',
-        'Barack Obama routine', '오바마 루틴',
-        'Arnold Schwarzenegger discipline', '아놀드 슈워제네거',
-        'Jack Ma success', '마윈 성공 습관',
-        'BTS RM reading', '손흥민 루틴',
-        '이재용 습관', '김범수 카카오 습관',
+        '데이비드 고긴스 멘탈', 'David Goggins mindset',
+        '조던 피터슨 자기계발', 'Jordan Peterson discipline',
+        '토니 로빈스 동기부여', 'Tony Robbins motivation',
+        '네이벌 라비칸트 지혜', 'Naval Ravikant wisdom',
+        '제임스 클리어 습관', 'James Clear atomic habits',
     ],
 ];
 
