@@ -203,14 +203,14 @@ ${vibeCoding.prompt}`;
   return (
     <div className="container">
       <header className="header">
-        <h1>🎯 유명인 습관 분석기</h1>
-        <p>유튜브 인기 영상 분석 → 습관 핵심 정리 → 바이브 코딩으로 내 것 만들기</p>
+        <h1>🎯 유명인 습관 멘토링</h1>
+        <p>AI가 제안하는 세계 최고들의 습관과 마인드셋을 내 것으로 만드세요</p>
       </header>
 
       {/* 스텝퍼 */}
       <div className="stepper">
         <div className={`step ${getStepState("videos")}`}>
-          <span className="step-number">1</span> 영상 탐색
+          <span className="step-number">1</span> 습관 발견
         </div>
         <span className="step-arrow">→</span>
         <div className={`step ${getStepState("analyzing")}`}>
@@ -225,7 +225,7 @@ ${vibeCoding.prompt}`;
       {/* 액션바 */}
       <div className="action-bar">
         <button className="btn btn-primary" onClick={() => searchVideos(0)} disabled={loading}>
-          🔍 유명인 습관 영상 찾기
+          ✨ AI에게 습관 제안받기
         </button>
 
         {history.length > 0 && (
@@ -254,7 +254,7 @@ ${vibeCoding.prompt}`;
         <section>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>
-              📺 유명인 습관 영상 ({videos.length}개)
+              🎯 오늘의 AI 추천 습관 ({videos.length}개)
             </h2>
             <button
               className="btn"
@@ -262,7 +262,7 @@ ${vibeCoding.prompt}`;
               disabled={!hasMore || loading}
               style={{ background: "#1f1f35", border: "1px solid #444", color: hasMore ? "#4ecdc4" : "#555" }}
             >
-              🔄 다른 영상 보기
+              🔄 새로운 제안 받기
             </button>
           </div>
 
@@ -270,6 +270,14 @@ ${vibeCoding.prompt}`;
             {videos.map((video) => (
               <div className="video-card" key={video.videoId}>
                 <div className="video-thumb-wrap">
+                  {video.suggestion && (
+                    <div className="suggestion-overlay">
+                      <span>💡 {video.suggestion}</span>
+                    </div>
+                  )}
+                  {video.category && (
+                    <span className="category-badge">{video.category}</span>
+                  )}
                   <img
                     src={video.thumbnailUrl}
                     alt={video.title}

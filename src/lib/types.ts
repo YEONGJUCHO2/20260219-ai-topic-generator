@@ -11,6 +11,8 @@ export interface YouTubeVideo {
     publishedAt: string;     // ISO date
     thumbnailUrl: string;
     youtubeUrl: string;      // https://youtube.com/watch?v=...
+    suggestion?: string;     // ★ AI 제안 (예: "워렌 버핏의 5/25 법칙 배우기")
+    category?: string;       // ★ AI 분류 (예: "생산성", "투자", "멘탈 관리")
 }
 
 export interface HabitAnalysis {
@@ -20,6 +22,7 @@ export interface HabitAnalysis {
     description: string;     // 상세 설명 (3~5줄)
     actionGuide: string[];   // 내 것으로 만드는 3단계
     example: string;         // 구체적 적용 예시
+    difficulty?: 'easy' | 'medium' | 'hard'; // ★ 난이도
 }
 
 export interface VibeCodingIdea {
