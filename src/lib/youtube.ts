@@ -5,37 +5,49 @@ import { YouTubeVideo } from './types';
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 
-// 카테고리별 키워드 (각 카테고리에서 1개씩 뽑아서 다양성 보장)
+// ★ 반드시 세계적으로 유명한 인물 이름이 들어간 키워드만 사용
 const KEYWORD_GROUPS = [
-    // 그룹 1: 기업인/리더
+    // 그룹 1: 테크/기업 리더
     [
-        '일론 머스크 습관', '젠슨 황 리더십', '빌 게이츠 독서법',
-        '제프 베조스 습관', '마크 저커버그 습관', '스티브 잡스 습관',
-        '잭 마 성공', '팀 쿡 리더십',
+        'Elon Musk habit', '일론 머스크 습관', '일론 머스크 루틴',
+        'Jensen Huang leadership', '젠슨 황 성공 비결',
+        'Bill Gates routine', '빌 게이츠 습관',
+        'Jeff Bezos habit', '제프 베조스 경영',
+        'Mark Zuckerberg routine', '마크 저커버그',
+        'Steve Jobs philosophy', '스티브 잡스 습관',
+        'Sam Altman productivity', '샘 올트만',
     ],
-    // 그룹 2: 투자/경제
+    // 그룹 2: 투자/경제 거물
     [
-        '워렌 버핏 투자 원칙', '레이 달리오 원칙', '찰리 멍거 투자',
-        '피터 린치 투자', '조지 소로스 투자', '부자 습관 루틴',
-        '경제 관리 방법', '재테크 성공 습관',
+        'Warren Buffett investing', '워렌 버핏 습관',
+        'Ray Dalio principles', '레이 달리오 원칙',
+        'Charlie Munger wisdom', '찰리 멍거 투자 철학',
+        'Peter Lynch investing', '피터 린치',
+        'George Soros strategy', '조지 소로스',
+        'Jim Rogers investing', '짐 로저스',
+        'Howard Marks investing', '하워드 막스',
     ],
-    // 그룹 3: 자기계발/학자/인플루언서
+    // 그룹 3: 세계적 인플루언서/과학자
     [
-        '앤드류 휴버만 루틴', '팀 페리스 자기관리', '토니 로빈스 습관',
-        '짐 론 성공', '사이먼 시넥 리더십', '아담 그랜트 심리학',
-        '도파민 디톡스', '딥워크 집중력',
+        'Andrew Huberman routine', '앤드류 휴버만 루틴',
+        'Tim Ferriss habit', '팀 페리스 습관',
+        'Tony Robbins morning', '토니 로빈스',
+        'Simon Sinek leadership', '사이먼 시넥',
+        'Naval Ravikant', '네이벌 라비칸트',
+        'Jordan Peterson habit', '조던 피터슨 습관',
+        'David Goggins mindset', '데이비드 고긴스',
     ],
-    // 그룹 4: 공부법/루틴
+    // 그룹 4: 유명인 자기관리/독서/루틴
     [
-        '성공한 사람 아침 루틴', '천재 공부법', '시간 관리 방법',
-        '독서법 성공', '자기계발 루틴', '아침 루틴 성공',
-        '하버드 공부법', '미라클 모닝',
+        'Oprah Winfrey routine', '오프라 윈프리 습관',
+        'Barack Obama routine', '오바마 루틴',
+        'Arnold Schwarzenegger discipline', '아놀드 슈워제네거',
+        'Jack Ma success', '마윈 성공 습관',
+        'BTS RM reading', '손흥민 루틴',
+        '이재용 습관', '김범수 카카오 습관',
     ],
 ];
 
-/**
- * 각 그룹에서 1개씩 랜덤으로 뽑아 다양한 인물 보장
- */
 function pickDiverseKeywords(): string[] {
     return KEYWORD_GROUPS.map(group => {
         const idx = Math.floor(Math.random() * group.length);
@@ -43,9 +55,6 @@ function pickDiverseKeywords(): string[] {
     });
 }
 
-/**
- * YouTube Data API v3로 인기 영상 검색
- */
 export async function searchYouTubeVideos(
     offset: number = 0,
     usedIds: string[] = []
@@ -55,17 +64,15 @@ export async function searchYouTubeVideos(
         throw new Error('YOUTUBE_API_KEY 환경변수가 설정되지 않았습니다.');
     }
 
-    // 각 카테고리에서 1개씩 → 4개 키워드 (다양한 인물 보장)
     const selectedKeywords = pickDiverseKeywords();
 
-    // 30일 전 날짜 계산
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const publishedAfter = thirtyDaysAgo.toISOString();
+    // 90일로 확장 (30일은 너무 짧아서 결과 부족)
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - 90);
+    const publishedAfter = daysAgo.toISOString();
 
     const allVideos: YouTubeVideo[] = [];
     const seenIds = new Set(usedIds);
-    const seenChannels = new Set<string>(); // 같은 채널 중복 방지
 
     for (const keyword of selectedKeywords) {
         try {
@@ -75,9 +82,7 @@ export async function searchYouTubeVideos(
                 type: 'video',
                 order: 'viewCount',
                 publishedAfter,
-                regionCode: 'KR',
-                relevanceLanguage: 'ko',
-                maxResults: '8',
+                maxResults: '10',
                 videoDuration: 'medium',
                 key: apiKey,
             });
@@ -110,13 +115,7 @@ export async function searchYouTubeVideos(
 
             for (const item of statsData.items || []) {
                 if (seenIds.has(item.id)) continue;
-
-                const channel = item.snippet?.channelTitle || '';
-                // 같은 채널에서 최대 1개만 (다양성 보장)
-                if (seenChannels.has(channel)) continue;
-
                 seenIds.add(item.id);
-                seenChannels.add(channel);
 
                 const viewCount = parseInt(item.statistics?.viewCount || '0', 10);
                 if (viewCount < 5000) continue;
@@ -124,7 +123,7 @@ export async function searchYouTubeVideos(
                 allVideos.push({
                     videoId: item.id,
                     title: item.snippet?.title || '',
-                    channelTitle: channel,
+                    channelTitle: item.snippet?.channelTitle || '',
                     description: item.snippet?.description || '',
                     viewCount: viewCount.toLocaleString('ko-KR'),
                     publishedAt: item.snippet?.publishedAt || '',
@@ -148,7 +147,6 @@ export async function searchYouTubeVideos(
         return bCount - aCount;
     });
 
-    const topVideos = allVideos.slice(0, 15);
-
+    const topVideos = allVideos.slice(0, 20);
     return { videos: topVideos, hasMore: true };
 }
