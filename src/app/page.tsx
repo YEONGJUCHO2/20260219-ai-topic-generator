@@ -262,6 +262,31 @@ export default function Dashboard() {
     }
   };
 
+
+
+  // 전체 삭제
+  const clearHistory = async () => {
+    if (!confirm("모든 습관 노트를 정말 삭제하시겠습니까?")) return;
+
+    try {
+      if (user) {
+        const q = query(collection(db, "users", user.uid, "habits"));
+        const querySnapshot = await getDocs(q);
+        const deletePromises = querySnapshot.docs.map((docSnap) => deleteDoc(docSnap.ref));
+        await Promise.all(deletePromises);
+        setHistory([]);
+        showToast("모든 노트가 삭제되었습니다.");
+      } else {
+        localStorage.removeItem("analysis_history_v3");
+        setHistory([]);
+        showToast("모든 노트가 삭제되었습니다.");
+      }
+    } catch (e) {
+      console.error("Clear all error:", e);
+      showToast("삭제 중 오류가 발생했습니다.");
+    }
+  };
+
   const getStepState = (s: string) => {
     const order = ["idle", "habits", "analyzing", "done"];
     const ci = order.indexOf(step);
@@ -442,7 +467,18 @@ export default function Dashboard() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>📚 나의 습관 노트</h2>
-              <button className="modal-close" onClick={() => setShowHistory(false)}>✕</button>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {history.length > 0 && (
+                  <button
+                    className="btn btn-secondary"
+                    onClick={clearHistory}
+                    style={{ fontSize: 13, padding: "6px 12px", background: "rgba(239, 68, 68, 0.1)", color: "#f87171", border: "1px solid rgba(239, 68, 68, 0.2)" }}
+                  >
+                    🗑️ 전체 삭제
+                  </button>
+                )}
+                <button className="modal-close" onClick={() => setShowHistory(false)}>✕</button>
+              </div>
             </div>
             <div className="modal-body">
               {history.length === 0 && (
